@@ -7,7 +7,7 @@ function varargout = tugas(varargin)
 %      the existing singleton*.
 %
 %      TUGAS('CALLBACK',hObject,eventData,handles,...) calls the local
-%      function named CALLBACK in TUGAS.M with the given input arguments.
+%      function named CALLBACK v vgin TUGAS.M with the given input arguments.
 %
 %      TUGAS('Property','Value',...) creates a new TUGAS or raises the
 %      existing singleton*.  Starting from the left, property value pairs are
@@ -22,7 +22,7 @@ function varargout = tugas(varargin)
 
 % Edit the above text to modify the response to help tugas
 
-% Last Modified by GUIDE v2.5 27-Jan-2019 20:38:23
+% Last Modified by GUIDE v2.5 05-Feb-2019 08:03:27
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -73,12 +73,27 @@ function varargout = tugas_OutputFcn(hObject, eventdata, handles)
 varargout{1} = handles.output;
 
 
-% --- Executes on button press in pushbutton1.
-function pushbutton1_Callback(hObject, eventdata, handles)
+% --- Executes on button press in import.
+function import_Callback(hObject, eventdata, handles)
 [filename pathname] = uigetfile({'*.jpg';'*.bmp';'*.png'},'File Selector');
 Img = imread([pathname filename]);
 axes(handles.axes1);
 imshow(Img);
-% hObject    handle to pushbutton1 (see GCBO)
+% hObject    handle to import (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in grayscale.
+function grayscale_Callback(hObject, eventdata, handles)
+% hObject    handle to grayscale (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+Img = getimage(handles.axes1)
+redChannel = Img(:, :, 1);
+greenChannel = Img(:, :, 2);
+blueChannel = Img(:, :, 3);
+grayImage = 0.333 * redChannel + 0.333 * greenChannel + 0.333 * blueChannel;
+guidata(hObject,handles);
+axes(handles.axes1);
+imshow(grayImage)
