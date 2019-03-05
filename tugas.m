@@ -22,7 +22,7 @@ function varargout = tugas(varargin)
 
 % Edit the above text to modify the response to help tugas
 
-% Last Modified by GUIDE v2.5 19-Feb-2019 08:53:50
+% Last Modified by GUIDE v2.5 05-Mar-2019 06:13:37
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -300,3 +300,84 @@ function y2_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
+% --- Executes on button press in histogram.
+% FUNGSI MEMUNCULKAN HISTOGRAM
+function histogram_Callback(hObject, eventdata, handles)
+    % MENDAPATKAN IMAGE DARI DATA HANDLES
+    image = handles.image
+    % PREALOCATE
+    histRed = zeros(1,256);
+    histGreen = zeros(1,256);
+    histBlue = zeros(1,256);
+    
+    % MENGHITUNG SEMUA FREKUENSI RGB PADA IMAGE
+    for i =1:size(image,1)
+        for j = 1:size(image,2)
+            p=image(i,j);
+            x=image(i,j,1); % MENGAMBIL PIXEL PADA RED
+            y=image(i,j,2); % MENGAMBIL PIXEL PADA GREEN
+            z=image(i,j,3); % MENGAMBIL PIXEL PADA BLUE
+            histRed(x+1)=histRed(x+1)+1; % MENAMBAH FREKUENSI PADA RED
+            histGreen(y+1)=histGreen(y+1)+1; % MENAMBAH FREKUENSI PADA GREEN
+            histBlue(z+1)=histBlue(z+1)+1; % MENAMBAH FREKUENSI PADA BLUE
+        end
+    end
+    
+    % MENAMPILKAN HISTOGRAM RGB
+    figure,bar(histRed,'r');
+    title('Histogram Red');
+    figure,bar(histGreen,'g');
+    title('Histogram Green');
+    figure,bar(histBlue,'b');
+    title('Histogram Blue');
+
+% --- Executes on button press in histeq.
+function histeq_Callback(hObject, eventdata, handles)
+    % MENDAPATKAN IMAGE DARI DATA HANDLES
+    image = handles.image
+    
+    % MENGINISIALISASI VARIABEL YANG DIPERLUKAN UNTUK HISTEQ
+    Histeq = uint8(zeros(size(image,1),size(image,2)));
+    freq=zeros(256,1);
+    probf=zeros(256,1);
+    probc=zeros(256,1);
+    cum=zeros(256,1);
+    output=zeros(256,1);
+    
+    % JUMLAH PIXEL DALAM IMAGE
+    numofpixels = size(image,1)*size(image,2)
+    
+    %MENGHITUNG FREKUENSI KEMUNCULAN PADA SETIAP PIXEL
+    %MENGHITUNG PROBABILITAS SETIAP KEMUNCULAN
+    for i=1:size(image,1)
+        for j=1:size(image,2)
+            value=image(i,j);
+            freq(value+1)=freq(value+1)+1;
+            probf(value+1)=freq(value+1)/numofpixels;
+        end
+    end
+    
+    sum=0;
+    no_bins=255;
+
+    %MENGHITUNG CUMULATIVE DISTIRBUTION DISTRIBUTION PADA SETIAP PIXEL
+    for i=1:size(probf)
+       sum=sum+freq(i);
+       cum(i)=sum;
+       probc(i)=cum(i)/numofpixels;
+       output(i)=round(probc(i)*no_bins);
+    end
+
+    %MEMASUKKAN HASIL PERHITUNGAN KEDALAM VARIABEL HISTEQ/IMAGE BARU
+    for i=1:size(image,1)
+        for j=1:size(image,2)
+            Histeq(i,j)=output(image(i,j)+1);
+        end
+    end
+    
+    %MEMUNCULKAN IMAGE DAN HISTOGRAM HASIL DARI HISTEQ
+    figure,bar(Histeq);
+    figure,imshow(Histeq);
+    title('Histogram equalization');
