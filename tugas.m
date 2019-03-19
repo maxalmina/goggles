@@ -22,7 +22,7 @@ function varargout = tugas(varargin)
 
 % Edit the above text to modify the response to help tugas
 
-% Last Modified by GUIDE v2.5 05-Mar-2019 06:13:37
+% Last Modified by GUIDE v2.5 19-Mar-2019 11:58:51
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -72,7 +72,6 @@ function varargout = tugas_OutputFcn(hObject, eventdata, handles)
 % Get default command line output from handles structure
 varargout{1} = handles.output;
 
-% --- Executes on button press in import.
 % FUNGSI IMPORT CITRA DIGITAL UNTUK DITAMPILKAN
 function import_Callback(hObject, eventdata, handles)
     % MEMBACA FILE .JPG/.BMP/.PNG UNTUK DITAMPILKAN
@@ -87,7 +86,6 @@ function import_Callback(hObject, eventdata, handles)
     imshow(Img); 
     guidata(hObject, handles);
 
-% --- Executes on button press in grayscale.
 % FUNGSI GRAYSCALE CITRA DIGITAL
 function grayscale_Callback(hObject, eventdata, handles)
     Img = handles.image;
@@ -114,7 +112,6 @@ function grayscale_Callback(hObject, eventdata, handles)
     imshow(grayImage);
     guidata(hObject,handles);
 
-% --- Executes on button press in zoomin.
 % FUNGSI MEMPERBESAR GAMBAR
 function zoomin_Callback(hObject, eventdata, handles)
     Img = handles.image1; % MENGAMBIL IMAGE DARI HANDLES
@@ -145,7 +142,6 @@ function zoomin_Callback(hObject, eventdata, handles)
     handles.image1 = inimage;
     guidata(hObject,handles);
 
-% --- Executes on button press in zoomout.
 % FUNGSI MEMPERKECIL GAMBAR
 function zoomout_Callback(hObject, eventdata, handles)
     Img = handles.image1; % MENGAMBIL IMAGE DARI HANDLES
@@ -171,7 +167,6 @@ function zoomout_Callback(hObject, eventdata, handles)
     handles.image1 = outimage;
     guidata(hObject,handles);
 
-% --- Executes on button press in sumbright.
 % FUNGSI BRIGHTNESS DENGAN PENJUMLAHAN
 function sumbright_Callback(hObject, eventdata, handles)
     Img = handles.image1; % MENDAPATKAN DATA IMAGE DARI DATA HANDLES
@@ -186,7 +181,6 @@ function sumbright_Callback(hObject, eventdata, handles)
     handles.image1 = image; % MENYIMPAN DATA IMAGE KE DATA HANDLES
     guidata(hObject, handles); % MENYIMPAN KEDALAM GUI DATA
 
-% --- Executes on button press in subsbright.
 % FUNGSI BRIGHTNESS DENGAN PENGURANGAN
 function subsbright_Callback(hObject, eventdata, handles)
     Img = handles.image1; % MENDAPATKAN DATA IMAGE DARI DATA HANDLES
@@ -201,7 +195,6 @@ function subsbright_Callback(hObject, eventdata, handles)
     handles.image1 = image; % MENYIMPAN DATA IMAGE KE DATA HANDLES
     guidata(hObject, handles); % MENYIMPAN KEDALAM GUI DATA
 
-% --- Executes on button press in timesbright.
 % FUNGSI BRIGHTNESS DENGAN PERKALIAN
 function timesbright_Callback(hObject, eventdata, handles)
     Img = handles.image1; % MENDAPATKAN DATA IMAGE DARI DATA HANDLES
@@ -216,7 +209,6 @@ function timesbright_Callback(hObject, eventdata, handles)
     handles.image1 = image; % MENYIMPAN DATA IMAGE KE DATA HANDLES
     guidata(hObject, handles); % MENYIMPAN KEDALAM GUI DATA
 
-% --- Executes on button press in divbright.
 % FUNGSI BRIGHTNESS DENGAN PEMBAGIANc
 function divbright_Callback(hObject, eventdata, handles)
     Img = handles.image1; % MENDAPATKAN DATA IMAGE DARI DATA HANDLES
@@ -241,8 +233,7 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-% --- Executes on button press in crop.
-%FUNGSI CROP IMAGE
+% FUNGSI CROP IMAGE
 function crop_Callback(hObject, eventdata, handles)
     image = handles.image1; % MENDAPATKAN DATA IMAGE DARI DATA HANDLES
     x1 = str2double(get(handles.x1, 'String')); % MENDAPATKAN NILAI DARI TEXT FIELD X1
@@ -263,7 +254,7 @@ function crop_Callback(hObject, eventdata, handles)
     figure, imshow(uint8(img));
     
 % --- Executes on button press in clearedit.
-%FUNGSI CLEAR IMAGE DARI LAYAR
+% FUNGSI CLEAR IMAGE DARI LAYAR
 function clearedit_Callback(hObject, eventdata, handles)
     % MEMBERSIHKAN LAYAR DARI CITRA DIGITAL
     cla(handles.axes1, 'reset');
@@ -301,8 +292,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
-% --- Executes on button press in histogram.
 % FUNGSI MEMUNCULKAN HISTOGRAM
 function histogram_Callback(hObject, eventdata, handles)
     % MENDAPATKAN IMAGE DARI DATA HANDLES
@@ -333,7 +322,7 @@ function histogram_Callback(hObject, eventdata, handles)
     figure,bar(histBlue,'b');
     title('Histogram Blue');
 
-% --- Executes on button press in histeq.
+% FUNGSI MENAMPILKAN HISTEQ
 function histeq_Callback(hObject, eventdata, handles)
     % MENDAPATKAN IMAGE DARI DATA HANDLES
     image = handles.image
@@ -381,3 +370,109 @@ function histeq_Callback(hObject, eventdata, handles)
     figure,bar(Histeq);
     figure,imshow(Histeq);
     title('Histogram equalization');
+
+% FUNGSI BLUR GAMBAR
+function blur_Callback(hObject, eventdata, handles)
+    % MENDAPATKAN IMAGE DARI DATA HANDLES
+    image = handles.image
+
+    % NILAI KERNEL
+    x = 1/9;
+    Mask = [x x x; x x x; x x x];
+    
+    % GAMBAR AWAL
+    [n l m] = size(image);
+    img = zeros(n+2, l+2, m);
+    for i = 1:m
+        for j = 1:n
+            for k = 1:l
+                img(j+1,k+1,i) = image(j,k,i);
+            end
+        end
+    end
+    
+    % GAMBAR FILTER
+    newImage = zeros(n+2, l+2, m);
+    [k l m] = size(img);
+    
+    % DIKONVOLUSI
+    for h=1:m
+        for i=2:k-1
+            for j=2:l-1
+                newImage(i,j,h) = img(i-1,j-1,h)*Mask(1,1) + img(i-1,j,h)*Mask(1,2) + img(i-1,j+1,h)*Mask(1,3) + img(i,j-1,h)*Mask(2,1) + img(i,j,h)*Mask(2,2) + img(i,j+1,h)*Mask(2,3) + img(i+1,j-1,h)*Mask(3,1) + img(i+1,j,h)*Mask(3,2) + img(i+1,j+1,h)*Mask(3,3);
+            end;
+        end;
+    end;
+    
+    % HASIL AKHIR KONVOLUSI
+    newImage = uint8(newImage);
+    figure,imshow(newImage);
+    
+
+% FUNGSI SHARP GAMBAR
+function sharp_Callback(hObject, eventdata, handles)
+    % MENDAPATKAN IMAGE DARI DATA HANDLES
+    image = handles.image
+    
+    % NILAI KERNEL
+    Mask = [0 -1 0; -1 5 -1; 0 -1 0];
+    
+    % GAMBAR AWAL
+    [n l m] = size(image);
+    img = zeros(n+2, l+2, m);
+    for i = 1:m
+        for j = 1:n
+            for k = 1:l
+                img(j+1,k+1,i) = image(j,k,i);
+            end
+        end
+    end
+    
+    % GAMBAR FILTER
+    newImage = zeros(n+2, l+2, m);
+    [k l m] = size(img);
+    for h=1:m
+        for i=2:k-1
+            for j=2:l-1
+                newImage(i,j,h) = img(i-1,j-1,h)*Mask(1,1) + img(i-1,j,h)*Mask(1,2) + img(i-1,j+1,h)*Mask(1,3) + img(i,j-1,h)*Mask(2,1) + img(i,j,h)*Mask(2,2) + img(i,j+1,h)*Mask(2,3) + img(i+1,j-1,h)*Mask(3,1) + img(i+1,j,h)*Mask(3,2) + img(i+1,j+1,h)*Mask(3,3);
+            end;
+        end;
+    end;
+    
+    % HASIL AKHIR KONVOLUSI
+    newImage = uint8(newImage);
+    figure,imshow(newImage);
+
+% FUNGSI EDGE DETECTION GAMBAR
+function edge_Callback(hObject, eventdata, handles)
+    % MENDAPATKAN IMAGE DARI DATA HANDLES
+    image = handles.image
+    
+    % NILAI KERNEL
+    Mask = [0 1 0; 1 -4 1; 0 1 0];
+    
+    % GAMBAR AWAL
+    [n l m] = size(image);
+    img = zeros(n+2, l+2, m);
+    for i = 1:m
+        for j = 1:n
+            for k = 1:l
+                img(j+1,k+1,i) = image(j,k,i);
+            end
+        end
+    end
+    
+    % GAMBAR FILTER
+    newImage = zeros(n+2, l+2, m);
+    [k l m] = size(img);
+    for h=1:m
+        for i=2:k-1
+            for j=2:l-1
+                newImage(i,j,h) = img(i-1,j-1,h)*Mask(1,1) + img(i-1,j,h)*Mask(1,2) + img(i-1,j+1,h)*Mask(1,3) + img(i,j-1,h)*Mask(2,1) + img(i,j,h)*Mask(2,2) + img(i,j+1,h)*Mask(2,3) + img(i+1,j-1,h)*Mask(3,1) + img(i+1,j,h)*Mask(3,2) + img(i+1,j+1,h)*Mask(3,3);
+            end;
+        end;
+    end;
+    
+    % HASIL AKHIR KONVOLUSI
+    newImage = uint8(newImage);
+    figure,imshow(newImage);
