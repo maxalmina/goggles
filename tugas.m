@@ -22,7 +22,7 @@ function varargout = tugas(varargin)
 
 % Edit the above text to modify the response to help tugas
 
-% Last Modified by GUIDE v2.5 19-Mar-2019 11:58:51
+% Last Modified by GUIDE v2.5 15-Apr-2019 10:04:39
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -110,6 +110,7 @@ function grayscale_Callback(hObject, eventdata, handles)
     grayImage = r_ratio * redChannel + g_ratio * greenChannel + b_ratio * blueChannel;
     axes(handles.axes1);
     imshow(grayImage);
+    handles.image1 = grayImage;
     guidata(hObject,handles);
 
 % FUNGSI MEMPERBESAR GAMBAR
@@ -446,7 +447,7 @@ function sharp_Callback(hObject, eventdata, handles)
 % FUNGSI EDGE DETECTION GAMBAR
 function edge_Callback(hObject, eventdata, handles)
     % MENDAPATKAN IMAGE DARI DATA HANDLES
-    image = handles.image
+    image = handles.image;
     
     % NILAI KERNEL
     Mask = [0 1 0; 1 -4 1; 0 1 0];
@@ -476,3 +477,429 @@ function edge_Callback(hObject, eventdata, handles)
     % HASIL AKHIR KONVOLUSI
     newImage = uint8(newImage);
     figure,imshow(newImage);
+
+% FUNGSI THRESHOLD
+function button_threshold_Callback(hObject, eventdata, handles)
+    % MENDAPATKAN IMAGE DARI DATA HANDLES
+    image = handles.image;
+    
+    %MENDAPATKAN R G B YANG AKAN MENJADI THRESHOLD
+    r = str2double(get(handles.r_threshold, 'String')); % MENDAPATKAN NILAI DARI TEXT FIELD R
+    g = str2double(get(handles.g_threshold, 'String')); % MENDAPATKAN NILAI DARI TEXT FIELD G
+    b = str2double(get(handles.b_threshold, 'String')); % MENDAPATKAN NILAI DARI TEXT FIELD B
+    
+    % CANVAS IMAGE BARU
+    newImage = uint8(zeros(size(image)));
+    for i = 1:size(image,1)
+        for j = 1:size(image,2)
+            if ((image(i,j,1) >= r) && (image(i,j,2) >= g) && (image(i,j,3) >= b))
+                newImage(i,j,:) = image(i,j,:);
+            end
+        end
+    end
+    
+    % HASIL AKHIR THRESHOLD
+    newImage = uint8(newImage);
+    figure,imshow(newImage);
+
+% FUNGSI REKURSIF UNTUK SEED REGIEN GROWTH
+function pixel = jelajah(image,i,j,threshold,pixel,n,row,column,atas,kanan,bawah,kiri,ii,jj);
+    
+    % MENGECEK PIXEL ATASNYA
+    if (i ~= 1) && (atas ~= true) 
+        
+        % MENGISI VARIABEL HASIL DARI PENGURANGAN (ABSOLUT) THRESHOLD DAN IMAGE
+        atas_red = abs(image(ii,jj,1) - image(i-1,j,1));
+        atas_green = abs(image(ii,jj,2) - image(i-1,j,2));
+        atas_blue = abs(image(ii,jj,3) - image(i-1,j,3));
+        
+        % RGB DARI ATAS <= THRESHOLD MAKA LAKUKAN SEGEMENTASI
+        if (atas_red <= threshold) && (atas_green <= threshold) && (atas_blue <= threshold )
+            % JELAJAH PIXEL DIATASNYA
+            pixel = jelajah(image,i-1,j,threshold,pixel,n+1,row,column,atas,kanan,bawah,kiri,ii,jj);
+            
+            % MENGISI VARIABLE X,Y DENGAN NILAI I,J
+            pixel(n,1) = i;
+            pixel(n,2) = j; 
+            
+            % STATUS PIXEL DISEKITARNYA
+            kanan = true;
+            bawah = true;
+            kiri = true;
+            atas = true;
+        end
+    end
+    
+    % MENGECEK PIXEL KIRINYA
+    if (j ~= 1) && (kiri ~= true)
+        
+        % MENGISI VARIABEL HASIL DARI PENGURANGAN (ABSOLUT) THRESHOLD DAN IMAGE
+        kiri_red = abs(image(ii,jj,1) - image(i,j-1,1));
+        kiri_green = abs(image(ii,jj,2) - image(i,j-1,2));
+        kiri_blue = abs(image(ii,jj,3) - image(i,j-1,3));
+
+        % RGB DARI KIRI <= THRESHOLD MAKA LAKUKAN SEGEMENTASI
+        if(kiri_red <= threshold) && (kiri_green <= threshold) && (kiri_blue <= threshold ) % Mengecek apakah nilai dari varible kim, kih, dan kib lebih kecil dari nilai variable t
+            % JELAJAH PIXEL DIBAWAHNYA
+            pixel = jelajah(image,i,j-1,threshold,pixel,n+1,row,column,atas,kanan,bawah,kiri,ii,jj);
+            
+            % STATUS PIXEL KANAN DAN KIRI MENJADI TRUE
+            kanan = true;
+            bawah = true;
+            
+            % MENGISI VARIABLE PIXEL DENGAN NILAI I,J
+            pixel(n,1) = i; 
+            pixel(n,2) = j;
+        end
+    end
+
+    % JIKA J == 1 DAN KIRIT STATUSNYA TRUE DAN RGB DARI KIRI > THRESHOLD J DIASSIGN JJ
+    if (j == 1) || ((kiri ~= true)&&(kiri_red > threshold) && (kiri_green > threshold) && (kiri_blue > threshold )) 
+        j = jj;
+    end
+
+    % MENGECEK PIXEL KANANNYA
+    if (j ~= column)
+
+        % MENGISI VARIABEL HASIL DARI PENGURANGAN (ABSOLUT) THRESHOLD DAN IMAGE
+        kanan_red = abs(image(ii,jj,1) - image(i,j+1,1));
+        kanan_green = abs(image(ii,jj,2) - image(i,j+1,2));
+        kanan_blue = abs(image(ii,jj,3) - image(i,j+1,3));
+
+        % RGB DARI KANAN <= THRESHOLD MAKA LAKUKAN SEGEMENTASI
+        if(kanan ~= true) && (kanan_red <= threshold) && (kanan_green <= threshold) && (kanan_blue <= threshold ) % Mengecek apakah nilai dari varible kanan sadengan true dan km, kh, dan kb lebih kecil dari nilai variable t
+            % STATUS PIXEL KIRI MENJADI TRUE
+            kiri = true;
+            
+            % JELAJAH PIXEL DIKANANNYA
+            pixel = jelajah(image,i,j+1,threshold,pixel,n+1,row,column,atas,kanan,bawah,kiri,ii,jj);
+            
+            % STATUS PIXEL BAWAH MENJADI TRUE
+            bawah = true;
+            
+            % MENGISI VARIABLE PIXEL DENGAN NILAI I,J
+            pixel(n,1) = i; 
+            pixel(n,2) = j;
+        end
+    end
+    
+    j = jj; % Mengeset nilai j dengan jj
+    
+    % MENGECEK PIXEL BAWAHNYA
+    if (i ~= row) % Mengecek apakah i sama dengan r
+        
+        % MENGISI VARIABEL HASIL DARI PENGURANGAN (ABSOLUT) THRESHOLD DAN IMAGE
+        bawah_red = abs(image(ii,jj,1) - image(i+1,j,1));
+        bawah_green = abs(image(ii,jj,2) - image(i+1,j,2));
+        bawah_blue = abs(image(ii,jj,3) - image(i+1,j,3));
+        
+        % RGB DARI BAWAH <= THRESHOLD MAKA LAKUKAN SEGEMENTASI
+        if (bawah ~= true) && (bawah_red <= threshold) && (bawah_green <= threshold) && (bawah_blue <= threshold ) % Mengecek apakah nilai dari varible bawah sama dengan true dan bm, bh, dan bb lebih kecil dari nilai variable t
+            
+            % STATUS PIXEL ATAS DAN KIRI MENJADI TRUE
+            atas = true;
+            kiri = false;
+            
+            pixel = jelajah(image,i+1,j,threshold,pixel,n+1,row,column,atas,kanan,bawah,kiri,ii,jj);
+           
+            % MENGISI VARIABLE PIXEL DENGAN NILAI I,J
+            pixel(n,1) = i; 
+            pixel(n,2) = j;
+        end
+    end
+    
+% FUNGSI SEED REGIEN
+function button_seed_Callback(hObject, eventdata, handles)
+    % MENDAPATKAN IMAGE DARI DATA HANDLES
+    image = handles.image;
+    
+    % MENDAPATKAN THRESHOLD, TITIK X DAN Y UNTUK SEGMENTASI
+    threshold = str2double(get(handles.threshold, 'String'));
+    x = str2double(get(handles.x_seed, 'String'));
+    y = str2double(get(handles.y_seed, 'String'));
+    
+    % Mengisi nilai r,c,dan colormap dengan size yang ada di dalam img
+    [r, c, colormap] = size(image);
+    
+    p = [];   
+    n = 1;
+    
+    % MENGINISIALISASI VARIABLE ATAS, BAWAH, KANAN, DAN KIRI
+    atas = false;
+    kanan = false;
+    bawah = false;
+    kiri = false;
+    
+    % MENGISI VARIABLE P DENGAN NILAI DARI FUNGSI JELAJAH
+    p(:,:) = jelajah(image,x,y,threshold,p,n,r,c,atas,kanan,bawah,kiri,x,y);
+    [a,b] = size(p);
+    
+    % PROSES SEGEMENTASI DENGAN MENJELAJAHI ROW DAN COLOM GAMBAR
+    for k = 1 : a % Menjelajahi data pada p  
+        for i=1 : r %Menjelajahi pixel row
+            for j=1 : c % Menjelajahi pixel colom
+                if (i == p(k,1)) && (j == p(k,2))
+                    image(i,j,:) = 0;
+                end
+            end
+        end
+    end
+
+    % HASIL AKHIR SEED REGIEN
+    newImage = uint8(image);
+    figure,imshow(newImage);
+
+% FUNGSI DILASI
+function dilation_Callback(hObject, eventdata, handles)
+    % MENDAPATKAN IMAGE DARI DATA HANDLES
+    img = handles.image;
+    
+    % MENGUBAH GAMBAR MENJADI HITAM PUTIH
+    imgbw = not(im2bw(img));
+    
+    % PENEBAL
+    SE = [1 1 1; 1 1 1;1 1 1]
+    
+    % OPERASI DILASI
+    A = imgbw;
+    B = SE;
+    hotx = 1;
+    hoty = 1;
+    
+    % MENDAPATKAN PANJANG KOLOM DAN BARIS PADA A DAN B
+    [ta, la] = size(A);
+    [tb, lb] = size(B);
+    
+    Xb = [];
+    Yb = [];
+    jum_anggota = 0;
+    
+    % MENENTUKAN KOORDINAT PIKSEL BERNILAI 1
+    for baris = 1:tb
+        for kolom = 1:lb
+            if B(baris, kolom) == 1
+                jum_anggota = jum_anggota + 1;
+                Xb(jum_anggota) = -hotx + kolom;
+                Yb(jum_anggota) = -hoty + baris;
+            end
+        end
+    end
+    
+    % INISIALISASI KANVAS DENGAN 0 DAN AKAN DIISI OLEH HASIL DILASI
+    AB = zeros(ta, la);
+    
+    % PROSES DILASI
+    for baris = 1:ta
+       for kolom = 1:la
+            for i = 1 : jum_anggota
+                if A(baris, kolom) == 1
+                    xpos = kolom + Xb(i);
+                    ypos = baris + Yb(i);
+                    if (xpos >= 1) && (xpos <= la) && (ypos >= 1) && (ypos <= ta)
+                        AB(ypos, xpos) = 1;
+                    end
+                end
+            end
+        end
+    end
+    
+    % HASIL AKHIR DILASI
+    figure,
+    subplot(1,2,1), imshow(imgbw), title('Citra Biner');
+    subplot(1,2,2), imshow(AB), title('Hasil Dilasi');
+
+
+% FUNGSI EROSI
+function erotion_Callback(hObject, eventdata, handles)
+    % MENDAPATKAN IMAGE DARI DATA HANDLES
+    img = handles.image;
+    
+    % MENGUBAH GAMBAR MENJADI HITAM PUTIH
+    imgbw = not(im2bw(img));
+    
+    %PENIPIS
+    SE = [1 1 1; 1 1 1;1 1 1]
+    
+    % OPERASI EROSI
+    A = imgbw;
+    B = SE;
+    hotx = 1;
+    hoty = 1;
+    
+    % MENDAPATKAN PANJANG KOLOM DAN BARIS PADA A DAN B
+    [ta, la] = size(A);
+    [tb, lb] = size(B);
+    
+    Xb = [];
+    Yb = [];
+    jum_anggota = 0;
+    
+    % MENENTUKAN KOORDINAT PIKSEL BERNILAI 1
+    for baris = 1:tb
+        for kolom = 1:lb
+            if B(baris, kolom) == 1
+                jum_anggota = jum_anggota + 1;
+                Xb(jum_anggota) = -hotx + kolom;
+                Yb(jum_anggota) = -hoty + baris;
+            end
+        end
+    end
+    
+    % INISIALISASI KANVAS DENGAN 1 DAN AKAN DIISI OLEH HASIL EROSI
+    AB = ones(ta, la);
+    
+    % PROSES EROSI
+    for baris = 1:ta
+       for kolom = 1:la
+            for i = 1 : jum_anggota
+                if A(baris, kolom) == 0
+                    xpos = kolom + Xb(i);
+                    ypos = baris + Yb(i);
+                    if (xpos >= 1) && (xpos <= la) && (ypos >= 1) && (ypos <= ta)
+                        AB(ypos, xpos) = 0;
+                    end
+                end
+            end
+        end
+    end
+    
+    % HASIL AKHIR EROSI
+    figure,
+    subplot(1,2,1), imshow(imgbw), title('Citra Biner');
+    subplot(1,2,2), imshow(AB), title('Hasil Erosi');
+
+function r_threshold_Callback(hObject, eventdata, handles)
+% hObject    handle to r_threshold (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of r_threshold as text
+%        str2double(get(hObject,'String')) returns contents of r_threshold as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function r_threshold_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to r_threshold (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function g_threshold_Callback(hObject, eventdata, handles)
+% hObject    handle to g_threshold (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of g_threshold as text
+%        str2double(get(hObject,'String')) returns contents of g_threshold as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function g_threshold_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to g_threshold (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function b_threshold_Callback(hObject, eventdata, handles)
+% hObject    handle to b_threshold (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of b_threshold as text
+%        str2double(get(hObject,'String')) returns contents of b_threshold as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function b_threshold_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to b_threshold (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function x_seed_Callback(hObject, eventdata, handles)
+% hObject    handle to x_seed (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of x_seed as text
+%        str2double(get(hObject,'String')) returns contents of x_seed as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function x_seed_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to x_seed (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function y_seed_Callback(hObject, eventdata, handles)
+% hObject    handle to y_seed (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of y_seed as text
+%        str2double(get(hObject,'String')) returns contents of y_seed as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function y_seed_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to y_seed (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function threshold_Callback(hObject, eventdata, handles)
+% hObject    handle to threshold (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of threshold as text
+%        str2double(get(hObject,'String')) returns contents of threshold as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function threshold_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to threshold (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
