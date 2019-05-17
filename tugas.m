@@ -22,7 +22,7 @@ function varargout = tugas(varargin)
 
 % Edit the above text to modify the response to help tugas
 
-% Last Modified by GUIDE v2.5 15-Apr-2019 10:04:39
+% Last Modified by GUIDE v2.5 17-May-2019 13:57:15
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -647,7 +647,7 @@ function button_seed_Callback(hObject, eventdata, handles)
 
     % HASIL AKHIR SEED REGIEN
     newImage = uint8(image);
-    figure,imshow(newImage);
+    figure, imshow(newImage);
 
 % FUNGSI DILASI
 function dilation_Callback(hObject, eventdata, handles)
@@ -768,6 +768,26 @@ function erotion_Callback(hObject, eventdata, handles)
     subplot(1,2,1), imshow(imgbw), title('Citra Biner');
     subplot(1,2,2), imshow(AB), title('Hasil Erosi');
 
+% FUNGSI KOMPRESI DENGAN QUANTIZATION
+function compress_Callback(hObject, eventdata, handles)
+    % MENDAPATKAN IMAGE DARI DATA HANDLES
+    img = handles.image;
+    img = uint8(img);
+    
+    % MENGISI NILAI Row, Column, dan COLORMAP DENGAN SIZE PADA IMG
+    [row, column, colormap] = size(img);
+    
+    % MENJELAJAHI PIXEL
+    for i=1 : row
+        for j=1 : column
+            % MEMBAGI MENJADI 4 LEVEL SEHINGGA PIXEL SAAT INI DIBAGI DENGAN 4
+            img(i,j,:) = floor(img(i,j,:)/4);
+        end
+    end
+    
+    %imwrite(img, 'hasil_kompresi.jpg');
+    figure,imshow(img);
+    
 function r_threshold_Callback(hObject, eventdata, handles)
 % hObject    handle to r_threshold (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -789,8 +809,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
-
 function g_threshold_Callback(hObject, eventdata, handles)
 % hObject    handle to g_threshold (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -798,7 +816,6 @@ function g_threshold_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of g_threshold as text
 %        str2double(get(hObject,'String')) returns contents of g_threshold as a double
-
 
 % --- Executes during object creation, after setting all properties.
 function g_threshold_CreateFcn(hObject, eventdata, handles)
@@ -812,8 +829,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
-
 function b_threshold_Callback(hObject, eventdata, handles)
 % hObject    handle to b_threshold (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -821,7 +836,6 @@ function b_threshold_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of b_threshold as text
 %        str2double(get(hObject,'String')) returns contents of b_threshold as a double
-
 
 % --- Executes during object creation, after setting all properties.
 function b_threshold_CreateFcn(hObject, eventdata, handles)
@@ -834,8 +848,6 @@ function b_threshold_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
-
 
 function x_seed_Callback(hObject, eventdata, handles)
 % hObject    handle to x_seed (see GCBO)
@@ -857,8 +869,6 @@ function x_seed_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
-
 
 function y_seed_Callback(hObject, eventdata, handles)
 % hObject    handle to y_seed (see GCBO)
